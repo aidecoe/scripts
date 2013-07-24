@@ -1,4 +1,4 @@
 scripts
 =======
 
-Common place for script I use here and there
+Common place for scripts I use here and there
