@@ -1,0 +1,14 @@
+#!/bin/bash
+
+while true; do
+    clear
+    source "$HOME"/.bash_profile
+    "$@"
+    REPLY=
+    while [[ $REPLY != y && $REPLY != n ]]; do
+        read -N1 -p "Rerun '$*'? [y/n]"
+        echo -ne "\b \r"
+    done
+    echo
+    [[ $REPLY = n ]] && break
+done

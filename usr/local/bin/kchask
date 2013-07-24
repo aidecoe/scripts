@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ ! $1 ]]; then
+    keys=$(< ${HOME}/.keys)
+    keychain ${keys}
+elif [[ $1 = -k ]]; then
+    keychain -k all
+fi
+
+echo
+echo
+read -p "Press C-j..."

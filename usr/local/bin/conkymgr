@@ -1,0 +1,29 @@
+#!/bin/sh
+
+PIDS="$(pgrep -x conky)"
+
+
+start_conky() {
+    local conf
+
+    for conf in ${HOME}/.conky/*; do
+        [ -f "${conf}" -a -x "${conf}" ] && conky -c "${conf}" -d -q && \
+            echo "Loaded ${conf}"
+    done
+}
+
+stop_conky() {
+    local pid
+
+    for pid in ${PIDS}; do
+        kill ${pid}
+    done
+}
+
+
+case "$1" in
+    start) start_conky ;;
+    stop) stop_conky ;;
+    restart) stop_conky; start_conky ;;
+    *) echo "Usage: $0 start|stop|restart" >&2
+esac

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+efile="${1#./}"
+shift
+useflags="$@"
+
+curdir="$(pwd)"
+overlay_dir="${curdir%/*/*}"
+package="${curdir##*/}"
+
+[[ $efile ]] || {
+    echo "Usage: $0 some.ebuild"
+    exit 1
+}
+
+[[ -r $efile ]] || {
+    echo "Cannot read $efile.  Aborting."
+    exit 1
+}
+
+set -e
+
+#echo
+#echo "### repoman manifest"
+#echo
+#repoman manifest
+
+echo
+echo "### sudo PORTDIR_OVERLAY=$overlay_dir emerge -va $package"
+echo
+sudo GENTOO_MIRRORS="" PORTDIR_OVERLAY="$overlay_dir" USE="$useflags" emerge \
+-va --quiet-build=n "=${efile%.ebuild}"
