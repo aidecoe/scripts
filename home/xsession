@@ -1,0 +1,76 @@
+#!/bin/bash
+
+export PATH="$PATH:$HOME/.local/bin"
+
+WM="$(<$HOME/.wm)"
+
+
+declare -a start_list stop_list
+
+err() {
+    echo "E: $*"
+}
+
+generate_scripts_lists() {
+    local f i n
+
+    for (( i=0; i<=99; i++ )); do
+        (( i<10 )) && n=0$i || n=$i
+        for f in "${1%/}"/$n*.sh; do
+            [[ -x $f ]] || continue
+            start_list+=( "$f" )
+            stop_list=( "$f" "${stop_list[@]}" )
+        done
+    done
+}
+
+is_function() {
+    [[ $(type -t $1) = function ]]
+}
+
+script_name() {
+    local name="${1#**/}"
+    echo "${name%.sh}"
+}
+
+
+if type -P keychain >/dev/null; then
+    eval `keychain --eval $(< $HOME/.keys) --quiet --noask --quick`
+fi
+
+generate_scripts_lists "$HOME/.xautostart"
+
+# Autostart
+for script in "${start_list[@]}"; do
+    unset start stop
+    . $script
+    is_function start || continue
+    name="$(script_name "$script")"
+    echo "Starting $name..."
+    start || "Failed to start $name"
+done
+unset start stop
+
+$WM
+
+# Autostop
+for script in "${stop_list[@]}"; do
+    [[ -r $script ]] || {
+        err "Script '$(script_name "$script")' is no longer there."
+        continue
+    }
+    unset start stop
+    . $script
+    is_function stop || continue
+    name="$(script_name "$script")"
+    echo "Stopping $name..."
+    stop || "Failed to stop $name"
+done
+unset start stop
+
+
+## Kill all the children of this script except of ssh- and gpg- agents.
+#agents=$(keychain 2>&1 | grep -o 'Found existing ...-agent: [0-9]\+' \
+#        | sed 's/.* \([0-9]\+\)$/\1/')
+#ps -o pid= --ppid $$ | grep -v "\(${agents/
+#/\|}\)" | xargs kill
